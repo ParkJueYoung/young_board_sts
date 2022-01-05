@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.board.mapper.BoardMapper">
+
+	<!-- 검색 조건문 -->
+	<sql id="criteria">
+		<trim prefix="where (" suffix=")" prefixOverrides="OR">
+			<foreach collection="typeArr" item="type">
+				<trim prefix="OR">
+					<choose>
+						<when test="type == 'T'.toString()">
+							title like concat('%',#{keyword},'%')
+						</when>
+						<when test="type == 'C'.toString()">
+							content like concat('%',#{keyword},'%')
+						</when>
+						<when test="type == 'W'.toString()">
+							writer like concat('%',#{keyword},'%' )
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+
+	</sql>
+
+	<insert id = "enroll">
+
+		insert into young_board(title, content, writer) values(#{title}, #{content},
+		#{writer})
+
+	</insert>
+
+
+	<select id="getList" resultType="com.board.model.BoardVO">
+
+		select * from young_board
+
+	</select>
+
+	<select id="getPage" resultType="com.board.model.BoardVO">
+
+
+		select * from young_board where bno = #{bno}
+
+	</select>
+
+
+	<update id="modify">
+
+		update young_board set title = #{title}, content = #{content}, updateDate =
+		now() where bno = #{bno}
+
+	</update>
+
+
+	<delete id="delete">
+
+		delete from young_board where bno = #{bno}
+
+	</delete>
+
+
+	<!-- 게시물 목록(페이징) -->
+	<select id="getListPaging" resultType="com.board.model.BoardVO">
+
+		select * from (
+		select bno, title, writer, regDate, updateDate
+		from young_board
+		<if test="keyword != null">
+		
+			<include refid="criteria"></include>
+			
+		</if>
+		order by bno desc) as T1
+		limit #{skip},#{amount}
+
+	</select>
+
+
+	<select id="getTotal" resultType="int">
+
+		select count(*) from young_board
+
+		<if test="keyword != null">
+
+			<include refid="criteria"></include>
+
+		</if>
+
+	</select>
+
+
+
+
+</mapper>
